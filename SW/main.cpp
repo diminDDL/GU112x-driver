@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "hardware/pio.h"
+#include "hardware/clocks.h"
+#include "disp_int.pio.h"
+#include "lib/util.h"
 
 #define WR 0
 #define RD 1
@@ -12,7 +16,7 @@
 const char *hello = "Hello, world!";
 const char *hello2 = "VFD is <3   \r";
 
-// Sends a string to the display by just dumping the bytes
+// Sends a char to the display by just dumping the bits
 void sendByte(uint8_t data) {
     gpio_put(WR, 0);
     sleep_us(1);
@@ -81,11 +85,24 @@ void selectWindow(uint8_t window) {
 
 int main() {
 
+    test();
+
+
     const uint led_pin = 25;
+    static const float pio_freq = 2000;
+    
+    PIO pio = pio0;
+    uint sm = pio_claim_unused_sm(pio, true);
+    uint offset = pio_add_program(pio, &driver_program);
+    float div = (float)clock_get_hz(clk_sys) / pio_freq;
+
+    disp_driver_program_init(pio, sm, offset, led_pin, div);
+
+    pio_sm_set_enabled(pio, sm, true);
 
     // Initialize LED pin
-    gpio_init(led_pin);
-    gpio_set_dir(led_pin, GPIO_OUT);
+    // gpio_init(led_pin);
+    // gpio_set_dir(led_pin, GPIO_OUT);
     // intialize control pins
     gpio_init(WR);
     gpio_set_dir(WR, GPIO_OUT);
@@ -109,4 +126,5 @@ int main() {
         sleep_ms(1000);
         displayReset();
     }
+    
 }
