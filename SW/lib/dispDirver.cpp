@@ -127,7 +127,7 @@ void drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_
     sendByte(0x01);
 
     // send the bitmap based on it's size
-    for (int i = 0; i < width * height / 2; i++) {
+    for (int i = 0; i < width; i++) {
         // send the lower 8 bits of the bitmap
         sendByte(reverseByte(bitmap[i] & 0xFF));
         // send the upper 8 bits of the bitmap if we are sending a 16 bit bitmap
