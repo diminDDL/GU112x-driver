@@ -45,6 +45,10 @@ target_link_libraries(${PROJECT_NAME}
     pico_stdlib
     hardware_pio
     hardware_clocks
+    hardware_irq
+    pico_bootrom
+    hardware_structs
+    hardware_sync
 )
 
 # Enable usb output, disable uart output

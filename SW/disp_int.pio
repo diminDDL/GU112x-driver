@@ -1,39 +1,58 @@
 .program driver
 
-; Turn on LED for 100 cycles and off for 100 cycles.
-; At 2 kHz, this will toggle pin at 10 Hz (200 cycles / 2000 Hz = 0.1 sec)
 
+; pin mapping: 
+; set pins: 0 = wr, 1 = rd
+; out pins: 0-7 = d0-d7
+
+    pull
+    out x, 8            ; set the x register to 0b01111111 for the pindirs stuff
+    pull
+    out y, 8            ; set the y register to 0b11111111 for the pindirs stuff
 .wrap_target
-    set pins, 1 [19]    ; Turn LED on and wait another 19 cycles
-    nop         [19]    ; Wait 20 cycles
-    nop         [19]    ; Wait 20 cycles
-    nop         [19]    ; Wait 20 cycles
-    nop         [19]    ; Wait 20 cycles
-    set pins, 0 [19]    ; Turn LED off and wait another 19 cycles
-    nop         [19]    ; Wait 20 cycles
-    nop         [19]    ; Wait 20 cycles
-    nop         [19]    ; Wait 20 cycles
-    nop         [19]    ; Wait 20 cycles
+    set pins, 2         ; set the wr pin low, rd pin high   [1]
+    pull
+    out pins, 8 [6]     ; write OSR to the data pins        [7]
+    set pins, 3 [9]     ; set the wr pin high, rd pin high  [10]
+    mov osr, x          ; store the x value in the osr      [1]
+    out pindirs, 8      ; set the pindirs to 0b01111111     [1]
+    set pins 1  [9]     ; set the rd pin low                [10]
+high:
+    jmp pin, high       ; loop while busy is high
+                        ; if we get here, busy is low
+    set pins, 3         ; set the wr pin high, rd pin high  [1]
+    mov osr, y          ; store 0b11111111 in the osr       [1]
+    out pindirs, 8      ; set the pindirs to 0b11111111     [1]
 .wrap
 
 % c-sdk {
 
 // Helper function (for use in C program) to initialize this PIO program
-void disp_driver_program_init(PIO pio, uint sm, uint offset, uint pin, float div) {
-
-    // Sets up state machine and wrap target. This function is automatically
-    // generated in driver.pio.h.
+    // Helper function (for use in C program) to initialize this PIO program
+void disp_driver_program_init(PIO pio, uint sm, uint offset, uint wr, uint d0, float div) {
     pio_sm_config c = driver_program_get_default_config(offset);
 
-    // Allow PIO to control GPIO pin (as output)
-    pio_gpio_init(pio, pin);
+    // Setup the pins for the state machine
+    pio_gpio_init(pio, wr);
+    pio_gpio_init(pio, wr+1);
+    for (int i = 0; i < 8; i++) {
+        pio_gpio_init(pio, d0 + i);
+    }
+
+    sm_config_set_in_pins(&c, d0+7);
+    sm_config_set_jmp_pin(&c, d0+7);
 
     // Connect pin to SET pin (control with 'set' instruction)
-    sm_config_set_set_pins(&c, pin, 1);
+    sm_config_set_set_pins(&c, wr, 2);
+    sm_config_set_out_pins(&c, d0, 8);
 
-    // Set the pin direction to output (in PIO)
-    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
-    
+    // Connect the fifos together
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+
+    // Set the directions
+    pio_sm_set_consecutive_pindirs(pio, sm, wr, 2, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, d0, 8, true);
+
     // Set the clock divider for the state machine
     sm_config_set_clkdiv(&c, div);
 
