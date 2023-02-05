@@ -1,48 +1,26 @@
 #include "dispDirver.h"
 #include "pico/stdlib.h"
 
-#define WR 0
-#define RD 1
-#define D0 2
-#define D_NUM 8
-
+PIO drv_pio;
+uint drv_sm;
 
 // initialize the pio state machine rd pin is wr+1
 void initPIO(PIO pio, uint sm, uint wr, uint d0, const pio_program_t *program, void (*init_fun)(PIO, uint, uint, uint, uint, float)){
-    static const float pio_freq = 100000; //100000000;
+    static const float pio_freq = 20000000;
     uint offset = pio_add_program(pio, program);
     float div = (float)clock_get_hz(clk_sys) / pio_freq;
     init_fun(pio, sm, offset, wr, d0, div);
     pio_sm_set_enabled(pio, sm, true);
+    drv_pio = pio;
+    drv_sm = sm;
     // send 0b01111111 and 0b11111111 into the fifo for the pindirs stuff
     pio_sm_put_blocking(pio, sm, 0b01111111);
     pio_sm_put_blocking(pio, sm, 0b11111111);
-
-    pio_sm_put_blocking(pio, sm, 'a');
-    pio_sm_put_blocking(pio, sm, 'b');
-    pio_sm_put_blocking(pio, sm, 'c');
-
-
 }
 
 // Sends a char to the display by just dumping the bits
 void sendByte(uint8_t data) {
-    gpio_put(WR, 0);
-    sleep_us(1);
-    for (int i = 0; i < D_NUM; i++) {
-        gpio_put(D0 + i, data & 1);
-        data >>= 1;
-    }
-    gpio_put(WR, 1);
-    // read the busy flag and wait until it is ready
-    gpio_put(RD, 0);
-    sleep_us(1);
-    gpio_set_dir(D0 + D_NUM - 1, GPIO_IN);
-    while (gpio_get(D0 + D_NUM - 1)) {
-        sleep_us(1);
-    }
-    gpio_set_dir(D0 + D_NUM - 1, GPIO_OUT);
-    gpio_put(RD, 1);
+    pio_sm_put_blocking(drv_pio, drv_sm, data);
 }
 
 // Sends a string to the display by just dumping the bytes
@@ -91,4 +69,65 @@ void selectWindow(uint8_t window) {
     sendByte(0x77);
     sendByte(0x01);
     sendByte(window);
+}
+
+// sets the cursor position
+// x - 1 dot pet unit
+// y - 8 dots per unit
+void setCursor(uint16_t x, uint16_t y){
+    sendByte(0x1F);
+    sendByte(0x24);
+    // send lower 8 bits of x
+    sendByte(x & 0xFF);
+    // send upper 8 bits of x
+    sendByte((x >> 8) & 0xFF);
+    // send lower 8 bits of y
+    sendByte(y & 0xFF);
+    // send upper 8 bits of y
+    sendByte((y >> 8) & 0xFF);
+}
+
+// Sets the brightness of the display
+// 1 - 12.5%
+// 2 - 25%
+// 3 - 37.5%
+// 4 - 50%  
+// 5 - 62.5%
+// 6 - 75%
+// 7 - 87.5%
+// 8 - 100%
+void setBrightness(uint8_t brightness){
+    sendByte(0x1F);
+    sendByte(0x58);
+    sendByte(brightness);
+}
+
+
+
+// Draws a bitmap to the display
+// x - 1 dot per unit cursor position
+// y - 8 dots per unit cursor position
+// width - 1 dot per unit width of the bitmap
+// height - 8 dots per unit height of the bitmap
+void drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t *bitmap){
+    setCursor(x, y);
+    sendByte(0x1F);
+    sendByte(0x28);
+    sendByte(0x66);
+    sendByte(0x11);
+    // send lower 8 bits of x
+    sendByte(width & 0xFF);
+    // send upper 8 bits of x
+    sendByte((width >> 8) & 0xFF);
+    // send lower 8 bits of y
+    sendByte(height & 0xFF);
+    // send upper 8 bits of y
+    sendByte((height >> 8) & 0xFF);
+
+    sendByte(0x01);
+
+    // send the bitmap based on it's size
+    for (int i = 0; i < width * height; i++) {
+        sendByte(bitmap[i]);
+    }
 }

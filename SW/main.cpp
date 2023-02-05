@@ -42,15 +42,26 @@ int main() {
 
     gpio_put(led_pin, 1);
 
+    uint8_t bitmap[] = {
+        0b01010101,
+        0b10101010,
+        0b01010101,
+        0b10101010
+    };
+
     // Loop forever
     while (true) {
-        // selectWindow(0);
-        // sendString(hello);
-        // scrollText(16, 100);
-        // sendStringDelay(hello2, 100);
-        // sleep_ms(1000);
-        // displayReset();
-        tight_loop_contents();
+        selectWindow(0);
+        drawBitmap(0, 0, 2, 2, bitmap);
+        sleep_ms(10000);
+        setBrightness(1);
+        sendString(hello);
+        scrollText(16, 100);
+        setCursor(25, 1);
+        setBrightness(8);
+        sendStringDelay(hello2, 100);
+        sleep_ms(1000);
+        displayReset();
         if (get_bootsel_button()) {
             reset_usb_boot(0,0);
         }
