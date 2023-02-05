@@ -109,7 +109,7 @@ void setBrightness(uint8_t brightness){
 // y - 8 dots per unit cursor position
 // width - 1 dot per unit width of the bitmap
 // height - 8 dots per unit height of the bitmap
-void drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint8_t *bitmap){
+void drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t *bitmap){
     setCursor(x, y);
     sendByte(0x1F);
     sendByte(0x28);
@@ -127,7 +127,18 @@ void drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const u
     sendByte(0x01);
 
     // send the bitmap based on it's size
-    for (int i = 0; i < width * height; i++) {
-        sendByte(bitmap[i]);
+    for (int i = 0; i < width * height / 2; i++) {
+        // send the lower 8 bits of the bitmap
+        sendByte(reverseByte(bitmap[i] & 0xFF));
+        // send the upper 8 bits of the bitmap if we are sending a 16 bit bitmap
+        if (height > 1)
+            sendByte(reverseByte((bitmap[i] >> 8) & 0xFF));
     }
+}
+
+unsigned char reverseByte(unsigned char b) {
+   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+   return b;
 }
