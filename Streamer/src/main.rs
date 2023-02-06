@@ -27,30 +27,24 @@ fn pritntBuffer(buffer: &[bool]){
 fn main() {
     let target_x_size = 112;
     let target_y_size = 16;
-    let threshold = 5;
+
+    let x_offset = 0;
+    let y_offset = 100;
+
+    let threshold = 50;
+    let magic:char = 'A';
     
     let port = SerialPort::open("/dev/ttyACM0", 115200);
-    let mut buffer = [0; 256];
+    let mut ser_port;
     match port {
         Ok(port) => {
             println!("Port opened");
-            loop {
-                //port.flush();
-                let read = port.read(&mut buffer);
-                match read {
-                    Ok(read) => {
-                        println!("{:?}", &buffer[..read]);
-                    }
-                    Err(e) => {
-                        continue;
-                    }
-                }
-                
-                //let res = port.write(&buffer[..read]);
-            }
+            ser_port = port;
         }
         Err(e) => {
             println!("Error opening port: {}", e);
+            // exit the program
+            return;
         }
     }
         
@@ -68,7 +62,7 @@ fn main() {
     let y_step = x_step;
     println!("x_step: {}, y_step: {}", x_step, y_step);
     println!("Window size: {}, {}", x_step*target_x_size, y_step*target_y_size);
-    thread::sleep(Duration::from_millis(2000));
+    //thread::sleep(Duration::from_millis(2000));
     // the target display is 512x16 and has 1 bit per pixel
     // the buffer is 1920x1080 and has 4 bytes per pixel
     // the buffer is in BGRA format
@@ -102,8 +96,8 @@ fn main() {
         let mut iter = 0;
         for x in 0..target_x_size {
             for y in 0..target_y_size {
-                let bigX = x * x_step;
-                let bigY = y * y_step;
+                let bigX = x * x_step + x_offset;
+                let bigY = y * y_step + y_offset;
                 if bigX >= w || bigY >= h {
                     continue;
                 }
@@ -122,7 +116,8 @@ fn main() {
         
         //pritntBuffer(&target_buffer);
 
-        // now we send the data
+        // now we create the u8 buffer to be sent
+        let mut data_buffer:Vec<u8> = vec![0; target_buffer.len() / 8];
         // iterate in 16 bit chunks
         for i in 0..target_buffer.len() / 16 {
             let mut data = 0;
@@ -135,7 +130,30 @@ fn main() {
             // split into 2 bytes
             let LS = (data & 0xFF) as u8;
             let MS = ((data >> 8) & 0xFF) as u8;
+            data_buffer[i*2] = LS;
+            data_buffer[i*2 + 1] = MS;
+        }
 
+        //println!("Sending data: {:?}", data_buffer);
+
+        loop {
+            //ser_port.flush();
+            let mut buffer = [0; 1];
+            let read = ser_port.read(&mut buffer);
+            match read {
+                Ok(read) => {
+                    //println!("{:?}", &buffer[..read]);
+                    // if we read a magic char, we can send the data
+                    if buffer[0] as char == magic {
+                        ser_port.write(&data_buffer);
+                        break;
+                    }
+                }
+                Err(e) => {
+                    continue;
+                }
+            }
+            //let res = port.write(&buffer[..read]);
         }
 
         //break;

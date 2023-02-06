@@ -163,8 +163,6 @@ int main() {
         0b0000000001110000,
     };
 
-    const char magic[] = "A";
-
     // Loop forever
     while (true) {
         selectWindow(0);
@@ -181,19 +179,19 @@ int main() {
             // read 8 * 2 * 112 bytes from usb serial
             //printf(magic);
             printf("%c", 'A');
-            sleep_ms(100);
-            // for (int i = 0; i < 112 * 2; i++) {
-            //     int16_t c;
-            //     c = getchar_timeout_us(1000000);
-            //     if (c == PICO_ERROR_TIMEOUT) {
-            //         break;
-            //     }
-            //     bitmap[i] = 0;
-            //     if (i % 2 == 0)
-            //         bitmap[i] |= (char)c;
-            //     else
-            //         bitmap[i] |= (char)c << 8;
-            // }
+            sleep_ms(10);
+            for (int i = 0; i < 112; i++) {
+                int16_t c1;
+                int16_t c2;
+                c1 = getchar_timeout_us(10000);
+                c2 = getchar_timeout_us(10000);
+                if (c1 == PICO_ERROR_TIMEOUT || c2 == PICO_ERROR_TIMEOUT) {
+                    break;
+                }
+                bitmap[i] = 0;
+                bitmap[i] |= (char)c1;
+                bitmap[i] |= (char)c2 << 8;
+            }
             lastTime = time_us_64();
         }
         if (get_bootsel_button()) {
