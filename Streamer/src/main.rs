@@ -3,7 +3,6 @@ extern crate scrap;
 
 use scrap::{Capturer, Display};
 use std::io::ErrorKind::WouldBlock;
-//use std::fs::File;
 use std::thread;
 use std::time::Duration;
 
@@ -27,12 +26,18 @@ fn main() {
     let target_x_size = 112;
     let target_y_size = 16;
 
-    let x_offset = 0;
-    let y_offset = 100;
+    let x_offset = 200;
+    let y_offset = 250;
 
     let threshold = 50;
+    let smoothing = false;
+
     let magic:char = 'A';
-    
+
+    //let x_step = (w as f32 / target_x_size as f32).floor() as usize;
+    let x_step = 1;
+    let y_step = x_step;
+
     let port = SerialPort::open("/dev/ttyACM0", 115200);
     let mut ser_port;
     match port {
@@ -46,7 +51,7 @@ fn main() {
             return;
         }
     }
-        
+
     let one_second = Duration::new(1, 0);
     let one_frame = one_second / 60;
 
@@ -54,29 +59,20 @@ fn main() {
     let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
     let (w, h) = (capturer.width(), capturer.height());
 
-    //let x_step = (w as f32 / target_x_size as f32).floor() as usize;
-    let x_step = 4;
-    let y_step = x_step;
     println!("x_step: {}, y_step: {}", x_step, y_step);
     println!("Window size: {}, {}", x_step*target_x_size, y_step*target_y_size);
     //thread::sleep(Duration::from_millis(2000));
-    // the target display is 512x16 and has 1 bit per pixel
-    // the buffer is 1920x1080 and has 4 bytes per pixel
-    // the buffer is in BGRA format
-    // we need to convert the buffer to 512x16 and 1 bit per pixel
-    let mut target_buffer:Vec<bool> = vec![false; target_x_size * target_y_size];    
 
-    let mut ser_buffer = [0; 256];
+    let mut target_buffer:Vec<bool> = vec![false; target_x_size * target_y_size];    
 
     let mut last_loop = std::time::Instant::now();
     loop {
-        // Wait until there's a frame.
 
+        // Wait until there's a frame.
         let buffer = match capturer.frame() {
             Ok(buffer) => buffer,
             Err(error) => {
                 if error.kind() == WouldBlock {
-                    // Keep spinning.
                     thread::sleep(one_frame);
                     continue;
                 } else {
@@ -98,11 +94,26 @@ fn main() {
                 if bigX >= w || bigY >= h {
                     continue;
                 }
-                let i = stride * bigY + 4 * bigX;
-                let r = buffer[i + 2];
-                let g = buffer[i + 1];
-                let b = buffer[i];
-                let pixel = ((r as u16 + g as u16 + b as u16)/4) > threshold;
+                let mut pixel = false;
+                if smoothing{
+                    let mut accumulator = 0;
+                    for i in 0..x_step {
+                        for j in 0..y_step {
+                            let i = stride * (bigY + j) + 4 * (bigX + i);
+                            let r = buffer[i + 2];
+                            let g = buffer[i + 1];
+                            let b = buffer[i];
+                            accumulator += (r as u16 + g as u16 + b as u16)/3;
+                        }
+                    }
+                    pixel = accumulator/((x_step*y_step) as u16) > threshold;
+                }else{
+                    let i = stride * bigY + 4 * bigX;
+                    let r = buffer[i + 2];
+                    let g = buffer[i + 1];
+                    let b = buffer[i];
+                    pixel = ((r as u16 + g as u16 + b as u16)/3) > threshold;
+                }
                 target_buffer[iter] = pixel;
                 iter += 1;
             }

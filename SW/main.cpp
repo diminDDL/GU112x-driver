@@ -38,6 +38,7 @@ int main() {
     setBrightness(8);
     while(true){
         drawBitmap(0, 0, 16*7, 2, bitmap);
+        sleep_ms(1);
         printf("%c", 'A');
         for (int i = 0; i < 112; i++) {
             int16_t c1;
