@@ -1,0 +1,12 @@
+/home/dmytro/Documents/projects/GU112x-driver/Streamer/target/debug/deps/serialport-d2b913d50c76914c.rmeta: /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/lib.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/mod.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/enumerate.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/error.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/ioctl.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/poll.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/termios.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/tty.rs
+
+/home/dmytro/Documents/projects/GU112x-driver/Streamer/target/debug/deps/serialport-d2b913d50c76914c.d: /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/lib.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/mod.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/enumerate.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/error.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/ioctl.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/poll.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/termios.rs /home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/tty.rs
+
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/lib.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/mod.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/enumerate.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/error.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/ioctl.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/poll.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/termios.rs:
+/home/dmytro/.cargo/registry/src/github.com-1ecc6299db9ec823/serialport-4.2.0/src/posix/tty.rs:

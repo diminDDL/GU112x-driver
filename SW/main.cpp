@@ -42,7 +42,24 @@ int main() {
 
     gpio_put(led_pin, 1);
 
-    uint16_t bitmap[] = {
+    uint16_t bitmap[112] = {
+        0b0000111000011000,
+        0b0001000111100110,
+        0b0001001010001001,
+        0b0001001110011001,
+        0b0001001011011001,
+        0b0001001111000001,
+        0b0000101010101001,
+        0b0000101110001001,
+        0b0000101010011001,
+        0b0000100101011001,
+        0b0000010011000001,
+        0b0000010001010001,
+        0b0000001000110001,
+        0b0000000101100110,
+        0b0000000010001000,
+        0b0000000001110000,
+
         0b0000111000011000,
         0b0001000111100110,
         0b0001001010001001,
@@ -146,28 +163,39 @@ int main() {
         0b0000000001110000,
     };
 
+    const char magic[] = "A";
+
     // Loop forever
     while (true) {
         selectWindow(0);
+        setBrightness(1);
         uint fps = 1111;
         char buff[5];
         uint64_t lastTime = 0;
         while(true){
-            drawBitmap(0, 0, 16*5, 2, bitmap);
+            drawBitmap(0, 0, 16*7, 2, bitmap);
             fps = 1000000 / (time_us_64() - lastTime);
+            //setCursor(80, 0);
+            //sprintf(buff, "%4d", fps);
+            //sendString(buff);
+            // read 8 * 2 * 112 bytes from usb serial
+            //printf(magic);
+            printf("%c", 'A');
+            sleep_ms(100);
+            // for (int i = 0; i < 112 * 2; i++) {
+            //     int16_t c;
+            //     c = getchar_timeout_us(1000000);
+            //     if (c == PICO_ERROR_TIMEOUT) {
+            //         break;
+            //     }
+            //     bitmap[i] = 0;
+            //     if (i % 2 == 0)
+            //         bitmap[i] |= (char)c;
+            //     else
+            //         bitmap[i] |= (char)c << 8;
+            // }
             lastTime = time_us_64();
-            setCursor(80, 0);
-            sprintf(buff, "%4d", fps);
-            sendString(buff);
         }
-        sleep_ms(10000);
-        setBrightness(2);
-        sendString(hello);
-        scrollText(16, 100);
-        setCursor(25, 1);
-        sendStringDelay(hello2, 100);
-        sleep_ms(1000);
-        displayReset();
         if (get_bootsel_button()) {
             reset_usb_boot(0,0);
         }
