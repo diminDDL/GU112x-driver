@@ -9,7 +9,6 @@ use std::time::Duration;
 
 use serial2::SerialPort;
 
-
 fn pritntBuffer(buffer: &[bool]){
     for i in 0..buffer.len() {
         if i % 16 == 0 {
@@ -48,8 +47,6 @@ fn main() {
         }
     }
         
-
-
     let one_second = Duration::new(1, 0);
     let one_frame = one_second / 60;
 
@@ -108,13 +105,9 @@ fn main() {
                 let pixel = ((r as u16 + g as u16 + b as u16)/4) > threshold;
                 target_buffer[iter] = pixel;
                 iter += 1;
-                //print!("{}", if pixel { "1" } else { "0" })
-                //println!("{} {} {} | {} - {} {} | {} {}", r, g, b, pixel, bigX, bigY, x, y);
             }
-            //println!()
         }
         
-        //pritntBuffer(&target_buffer);
 
         // now we create the u8 buffer to be sent
         let mut data_buffer:Vec<u8> = vec![0; target_buffer.len() / 8];
@@ -126,7 +119,6 @@ fn main() {
                     data |= 1 << j;
                 }
             }
-            //println!("{:#018b}", data);
             // split into 2 bytes
             let LS = (data & 0xFF) as u8;
             let MS = ((data >> 8) & 0xFF) as u8;
@@ -134,15 +126,12 @@ fn main() {
             data_buffer[i*2 + 1] = MS;
         }
 
-        //println!("Sending data: {:?}", data_buffer);
-
         loop {
             //ser_port.flush();
             let mut buffer = [0; 1];
             let read = ser_port.read(&mut buffer);
             match read {
                 Ok(read) => {
-                    //println!("{:?}", &buffer[..read]);
                     // if we read a magic char, we can send the data
                     if buffer[0] as char == magic {
                         ser_port.write(&data_buffer);
@@ -153,7 +142,6 @@ fn main() {
                     continue;
                 }
             }
-            //let res = port.write(&buffer[..read]);
         }
 
         //break;
